@@ -9,6 +9,7 @@ from watchdog.observers import Observer
 from watchdog.events import *
 import time
 import requests
+import xmltodict
 
 
 class FileEventHandler(FileSystemEventHandler):
@@ -22,6 +23,8 @@ class FileEventHandler(FileSystemEventHandler):
         self.type = config.get('panotype')
         self.parsexml = config.get('parsexml')
         self.aetitle = config.get('aetitle')
+        self.name_institution = config.get('name_institution')
+        self.sonpath = config.get('sonpath')
 
     def on_created(self, event):
         # print('---------------')
@@ -31,13 +34,13 @@ class FileEventHandler(FileSystemEventHandler):
             #       " - file created:{0}".format(file_path))
             t_now = time.time()
 
-            if self.type in file_path:
+            if self.type in file_path and self.sonpath in file_path:
                 if self.file_recent != file_path or (t_now - self.t_recent) > 5:
                     time.sleep(10)
                     print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) +
                           " - file created:{0}".format(file_path))
                     if self.parsexml=='no':
-                        print("文件上传")
+                        print("正在上传")
                         with open(file_path, 'rb') as file:
                             multiple_files = [('multipartFiles', open(file_path, 'rb'))]
                             body = {"aetitle": self.aetitle}
@@ -46,6 +49,49 @@ class FileEventHandler(FileSystemEventHandler):
                             print(response.status_code)
                     else:
                         print("解析xml")
+                        xml_path = file_path.replace(self.type, 'xml')
+                        with open(xml_path, encoding='utf-8') as f:
+                            xml_dict = xmltodict.parse(f.read())
+
+                        type_img = xml_dict['IMAGEDESCRIPTION']['IMAGE']['@programbasename']
+                        print(type_img)
+                        if type_img == 'P1':
+                            name_last = xml_dict['IMAGEDESCRIPTION']['PATIENT']['@lastname']
+                            name_first = xml_dict['IMAGEDESCRIPTION']['PATIENT']['@firstname']
+                            date_birth = xml_dict['IMAGEDESCRIPTION']['PATIENT']['@birthdate']
+                            date_img = xml_dict['IMAGEDESCRIPTION']['IMAGE']['@takedate']
+                            time_img = xml_dict['IMAGEDESCRIPTION']['IMAGE']['@taketime']
+                            n_col = xml_dict['IMAGEDESCRIPTION']['IMAGE']['@noofcolums']
+                            n_row = xml_dict['IMAGEDESCRIPTION']['IMAGE']['@noofrows']
+                            if name_last == name_first and len(name_last) > 1:
+                                name_patient = name_last
+                            else:
+                                name_patient = name_last + name_first
+                            date_birth = date_birth.replace('-', '')
+                            id_patient = name_patient + date_birth
+                            output = {
+                                'PatientID': id_patient,
+                                'PatientName': name_patient,
+                                'PatientBirthDate': date_birth,
+                                'InstitutionName': self.name_institution,
+                                'StudyDate': date_img,
+                                'Rows': n_row,
+                                'Columns': n_col,
+                            }
+                            img_path = file_path
+                            print("img_path",img_path)
+
+                            with open(img_path, 'rb') as file:
+                                multiple_files = [('multipartFile',file )]
+                                body = {
+                                    'id': id_patient,
+                                    'name': name_patient,
+                                    'aetitle': self.aetitle,
+                                    'json': str(output),
+                                }
+                                response = requests.post("http://139.219.103.195:4000/deepcare/api/tiff/upload", files=multiple_files, data=body)
+                                print(response.text)
+                                print(response.status_code)
                     self.file_recent = file_path
                     self.t_recent = t_now
 

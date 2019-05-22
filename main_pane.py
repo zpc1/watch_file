@@ -45,13 +45,15 @@ class Window(QMainWindow, Ui_MainWindow):
     def init_watchdog(self):
         self.event_handler = FileEventHandler()
         self.event_handler.setConfig(self.clientconf)
-        self.observer = Observer()
-        path = self.clientconf.get('watchpath')
-        print('watch path',path)
-        self.observer.schedule(self.event_handler,path , True)
+
 
     def start_watchfile(self):
         print('watching...')
+        print(self.clientconf)
+        self.observer = Observer()
+        path = self.clientconf.get('watchpath')
+        print('watch path', path)
+        self.observer.schedule(self.event_handler, path, True)
         self.observer.start()
 
     def stop_watchfile(self):
@@ -66,9 +68,7 @@ class Window(QMainWindow, Ui_MainWindow):
         self.clientconf = config.get('client')
         print(self.clientconf)
         self.event_handler.setConfig(self.clientconf)
-        path = self.clientconf.get('watchpath')
-        print('watch path', path)
-        self.observer.schedule(self.event_handler, path, True)
+
 
     def test_clicked(self):
         self.loadconfig()
