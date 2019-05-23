@@ -18,13 +18,15 @@ class FileEventHandler(FileSystemEventHandler):
         self.file_recent = ''
         self.t_recent = 0
 
-    def setConfig(self, config):
+    def setConfig(self, config, signal):
+        self.signal = signal
         # print('config:',config)
         self.type = config.get('panotype')
         self.parsexml = config.get('parsexml')
         self.aetitle = config.get('aetitle')
         self.name_institution = config.get('name_institution')
         self.sonpath = config.get('sonpath')
+
 
     def on_created(self, event):
         # print('---------------')
@@ -34,21 +36,28 @@ class FileEventHandler(FileSystemEventHandler):
             #       " - file created:{0}".format(file_path))
             t_now = time.time()
 
+
             if self.type in file_path and self.sonpath in file_path:
                 if self.file_recent != file_path or (t_now - self.t_recent) > 5:
                     time.sleep(10)
                     print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) +
                           " - file created:{0}".format(file_path))
+
+                    self.signal.emit(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) +
+                          " - file created:{0}".format(file_path))
                     if self.parsexml=='no':
                         print("正在上传")
+                        self.signal.emit("正在上传")
                         with open(file_path, 'rb') as file:
                             multiple_files = [('multipartFiles', open(file_path, 'rb'))]
                             body = {"aetitle": self.aetitle}
                             response = requests.post("http://139.219.103.195:4000/deepcare/api/dicom/saveFile", files=multiple_files, data=body)
                             print(response.text)
+                            self.signal.emit(response.text)
                             print(response.status_code)
                     else:
                         print("解析xml")
+                        self.signal.emit("解析xml")
                         xml_path = file_path.replace(self.type, 'xml')
                         with open(xml_path, encoding='utf-8') as f:
                             xml_dict = xmltodict.parse(f.read())
@@ -91,9 +100,11 @@ class FileEventHandler(FileSystemEventHandler):
                                 }
                                 response = requests.post("http://139.219.103.195:4000/deepcare/api/tiff/upload", files=multiple_files, data=body)
                                 print(response.text)
+                                self.signal.emit(response.text)
                                 print(response.status_code)
                     self.file_recent = file_path
                     self.t_recent = t_now
+
 
 
 if __name__ == '__main__':
