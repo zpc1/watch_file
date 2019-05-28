@@ -11,6 +11,25 @@ import time
 import requests
 import xmltodict
 import traceback
+import threading
+from threading import Thread
+
+
+class WriteThread(Thread):
+    def __init__(self,queue,WEvent,REvent):
+        Thread.__init__(self)
+        self.queue = queue
+        self.REvent = REvent
+        self.WEvent = WEvent
+
+    def run(self):
+            data = [randint(1,10) for _ in range(0,5)]
+            self.queue.put(data)
+            print("send Read Event")
+            self.REvent.set()  #--> 通知读线程可以读了
+            self.WEvent.wait() #--> 等待写事件
+            print("recv write Event")
+            self.WEvent.clear() #-->清除写事件，以方便下次读取
 
 
 class FileEventHandler(FileSystemEventHandler):
@@ -40,7 +59,10 @@ class FileEventHandler(FileSystemEventHandler):
 
                 if self.type in file_path and self.sonpath in file_path:
                     if self.file_recent != file_path or (t_now - self.t_recent) > 5:
-                        time.sleep(10)
+
+                        time.sleep(5)
+
+                        print(threading.current_thread())
                         print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) +
                               " - file created:{0}".format(file_path))
 
@@ -106,13 +128,8 @@ class FileEventHandler(FileSystemEventHandler):
                         self.file_recent = file_path
                         self.t_recent = t_now
         except Exception:
+            print('error')
             self.signal.emit(traceback.format_exc())
-
-
-
-
-
-
 
 if __name__ == '__main__':
     event_handler = FileEventHandler()

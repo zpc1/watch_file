@@ -10,6 +10,7 @@ import psutil
 import os
 from win32com.client import Dispatch
 import win32com
+import threading
 
 class Window(QMainWindow, Ui_MainWindow):
     Logsignal = pyqtSignal(str)
@@ -17,7 +18,6 @@ class Window(QMainWindow, Ui_MainWindow):
     def __init__(self):
         try:
             super().__init__()
-
             self.setWindowIcon(QIcon("vvv.png"))
             self.setupUi(self)
             self.init_config()
@@ -76,6 +76,7 @@ class Window(QMainWindow, Ui_MainWindow):
         path = self.clientconf.get('watchpath')
         print('watch path', path)
         self.logtopte('watch path:'+ path)
+        print(threading.current_thread())
         self.observer.schedule(self.event_handler, path, True)
         self.observer.start()
 
@@ -98,28 +99,31 @@ class Window(QMainWindow, Ui_MainWindow):
     def loadconfig(self):
         config = self.configUtile.toDict(self.configname)
         self.clientconf = config.get('client')
-        print(self.clientconf)
+        # print(self.clientconf)
         self.logtopte(str(self.clientconf))
         self.event_handler.setConfig(self.clientconf, self.Logsignal)
 
     def init_para_clicked(self):
         self.loadconfig()
         # self.showMinimized()
-        self.isrunning()
+        print(self.isrunning())
 
     def logtopte(self, text):
         self.pte_log.appendPlainText(time.strftime("%H:%M:%S", time.localtime())+" :  "+text)
         # print("----"+text)
+
     def isrunning(self):
         name = os.path.basename(os.path.realpath(sys.argv[0]))
-        print(name.split('.')[0])
+        # print(name)
         wmi = win32com.client.GetObject('winmgmts:')
         for p in wmi.InstancesOf('win32_process'):
-            if p.Name == 'main_pane':
-                print(p.Name + p.Properties_('ProcessId'))
-            # print(
-            # p.Name, p.Properties_('ProcessId'), \
-            # int(p.Properties_('UserModeTime').Value) + int(p.Properties_('KernelModeTime').Value))
+            if p.Name == 'main_pane.exe':
+                # return True
+                # print(p.Name + p.Properties_('ProcessId'))
+                # print(
+                # p.Name, p.Properties_('ProcessId'), \
+                # int(p.Properties_('UserModeTime').Value) + int(p.Properties_('KernelModeTime').Value))
+                return True
             # children = wmi.ExecQuery(
             #     'Select * from win32_process where ParentProcessId=%s' % p.Properties_('ProcessId'))
             # for child in children:
@@ -128,14 +132,19 @@ class Window(QMainWindow, Ui_MainWindow):
             #     int(child.Properties_('UserModeTime').Value) + int(child.Properties_('KernelModeTime').Value))
         # print(wmi)
         # print(wmi.ExecQuery('select * from Win32_Process where name=\"%s\"' % (name.split('.')[0])))
+        return False
 
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
 
-    window = Window()
+    isrunning = False
+    if not isrunning:
+        app = QApplication(sys.argv)
+        window = Window()
 
-    window.show()
-    atexit.register(window.my_exec)
-    pids = psutil.pids()
-    print(pids)
-    sys.exit(app.exec_())
+        window.show()
+        atexit.register(window.my_exec)
+        # pids = psutil.pids()
+        # print(pids)
+        sys.exit(app.exec_())
+    else:
+        print('已经运行')
