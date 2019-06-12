@@ -16,7 +16,7 @@ class Window(QMainWindow, Ui_MainWindow):
     Logsignal = pyqtSignal(str)
 
     def __init__(self):
-        try:
+        try  :
             super().__init__()
             self.setWindowIcon(QIcon("vvv.png"))
             self.setupUi(self)
@@ -26,8 +26,6 @@ class Window(QMainWindow, Ui_MainWindow):
             self.Logsignal.connect(self.logtopte)
         except Exception:
             self.logtopte(traceback.format_exc())
-
-
 
     def setup_ui(self):
         self.btn_start.adjustSize()
@@ -76,7 +74,6 @@ class Window(QMainWindow, Ui_MainWindow):
         path = self.clientconf.get('watchpath')
         print('watch path', path)
         self.logtopte('watch path:'+ path)
-        print(threading.current_thread())
         self.observer.schedule(self.event_handler, path, True)
         self.observer.start()
 
@@ -143,8 +140,6 @@ if __name__ == '__main__':
 
         window.show()
         atexit.register(window.my_exec)
-        # pids = psutil.pids()
-        # print(pids)
         sys.exit(app.exec_())
     else:
         print('已经运行')

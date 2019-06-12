@@ -11,25 +11,42 @@ import time
 import requests
 import xmltodict
 import traceback
+import queue
+from threading import Event
 import threading
 from threading import Thread
 
 
-class WriteThread(Thread):
-    def __init__(self,queue,WEvent,REvent):
+class FileThread(Thread):
+    def __init__(self,queue, event, filename, signal):
         Thread.__init__(self)
         self.queue = queue
-        self.REvent = REvent
-        self.WEvent = WEvent
+        self.mevent = event
+        self.filename = filename
+        self.isloop = True
+        self.signal = signal
+        self.starttime = time.time()
 
     def run(self):
-            data = [randint(1,10) for _ in range(0,5)]
-            self.queue.put(data)
-            print("send Read Event")
-            self.REvent.set()  #--> 通知读线程可以读了
-            self.WEvent.wait() #--> 等待写事件
-            print("recv write Event")
-            self.WEvent.clear() #-->清除写事件，以方便下次读取
+        print(threading.currentThread())
+        print(threading.active_count())
+        while self.isloop:
+            try:
+                # raise RuntimeError('testerror')
+                with open(self.filename, 'r') as file:
+                    print('发送文件消息'+str(time.time()-self.starttime)+'s')
+                    self.isloop = False
+                    self.mevent.set()
+            except Exception:
+                if 'PermissionError' in traceback.format_exc():
+                    print('文件没写完')
+                    time.sleep(0.5)
+                else:
+                    self.isloop = False
+                    self.signal.emit(traceback.format_exc())
+                    self.mevent.set()
+
+        print("线程死亡:")
 
 
 class FileEventHandler(FileSystemEventHandler):
@@ -59,10 +76,12 @@ class FileEventHandler(FileSystemEventHandler):
 
                 if self.type in file_path and self.sonpath in file_path:
                     if self.file_recent != file_path or (t_now - self.t_recent) > 5:
-
-                        time.sleep(5)
-
-                        print(threading.current_thread())
+                        q = queue.Queue()
+                        mevent = Event()
+                        thread = FileThread(q, mevent, file_path, self.signal)
+                        thread.start()
+                        mevent.wait()
+                        # print(threading.current_thread())
                         print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) +
                               " - file created:{0}".format(file_path))
 
