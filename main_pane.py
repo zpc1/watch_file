@@ -73,8 +73,17 @@ class Window(QMainWindow, Ui_MainWindow):
         self.observer = Observer()
         path = self.clientconf.get('watchpath')
         print('watch path', path)
+        if not path:
+            import psutil
+            for disk in psutil.disk_partitions():
+                print(disk.device)
+                self.observer.schedule(self.event_handler, disk.device, True)
+
+        else:
+            self.observer.schedule(self.event_handler, path, True)
         self.logtopte('watch path:'+ path)
-        self.observer.schedule(self.event_handler, path, True)
+
+
         self.observer.start()
 
     def stop_watchfile(self):
@@ -103,43 +112,50 @@ class Window(QMainWindow, Ui_MainWindow):
     def init_para_clicked(self):
         self.loadconfig()
         # self.showMinimized()
-        print(self.isrunning())
+        # print(self.isrunning())
 
     def logtopte(self, text):
         self.pte_log.appendPlainText(time.strftime("%H:%M:%S", time.localtime())+" :  "+text)
         # print("----"+text)
 
-    def isrunning(self):
-        name = os.path.basename(os.path.realpath(sys.argv[0]))
-        # print(name)
-        wmi = win32com.client.GetObject('winmgmts:')
-        for p in wmi.InstancesOf('win32_process'):
-            if p.Name == 'main_pane.exe':
-                # return True
-                # print(p.Name + p.Properties_('ProcessId'))
-                # print(
-                # p.Name, p.Properties_('ProcessId'), \
-                # int(p.Properties_('UserModeTime').Value) + int(p.Properties_('KernelModeTime').Value))
-                return True
-            # children = wmi.ExecQuery(
-            #     'Select * from win32_process where ParentProcessId=%s' % p.Properties_('ProcessId'))
-            # for child in children:
-            #     print(
-            #     '\t', child.Name, child.Properties_('ProcessId'), \
-            #     int(child.Properties_('UserModeTime').Value) + int(child.Properties_('KernelModeTime').Value))
-        # print(wmi)
-        # print(wmi.ExecQuery('select * from Win32_Process where name=\"%s\"' % (name.split('.')[0])))
-        return False
+    def showWarmingDialog(self):
+        mb = QMessageBox(self)
+        mb.setModal(False)
+        mb.setIcon(QMessageBox.Warning)
+        mb.setText("系统检测到该程序正在后台运行")
+        mb.setInformativeText("请点击确认取消本次任务")
+        mb.setStandardButtons(QMessageBox.Yes)
+        yes_btn = mb.button(QMessageBox.Yes)
+
+        def clicked(btn):
+            self.setVisible(False)
+            self.close()
+            qApp.quit()
+            sys.exit(0)
+
+        mb.buttonClicked.connect(clicked)
+        mb.setDefaultButton(yes_btn)
+        mb.exec()
+
+
 
 if __name__ == '__main__':
 
     isrunning = False
-    if not isrunning:
-        app = QApplication(sys.argv)
-        window = Window()
+    from utile.SysUtile import SysUtile
+    sysUtile = SysUtile()
+    name = sys.argv[0]
+    print(name)
+    isrunning = sysUtile.isrunning(name)
 
-        window.show()
-        atexit.register(window.my_exec)
-        sys.exit(app.exec_())
-    else:
+    app = QApplication(sys.argv)
+    window = Window()
+    window.show()
+
+    if isrunning:
         print('已经运行')
+        window.showWarmingDialog()
+
+    atexit.register(window.my_exec)
+    sys.exit(app.exec_())
+

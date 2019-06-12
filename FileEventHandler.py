@@ -67,14 +67,14 @@ class FileEventHandler(FileSystemEventHandler):
 
     def on_created(self, event):
         try:
-            # print('---------------')
+            print('---------------')
             if not event.is_directory:
                 file_path = event.src_path
                 # print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) +
                 #       " - file created:{0}".format(file_path))
                 t_now = time.time()
 
-                if self.type in file_path and self.sonpath in file_path:
+                if self.type in file_path and self.sonpath in file_path and ("$" not in file_path) and (".lnk" not in file_path):
                     if self.file_recent != file_path or (t_now - self.t_recent) > 5:
                         q = queue.Queue()
                         mevent = Event()

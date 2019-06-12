@@ -52,7 +52,7 @@ class TrayIcon(QSystemTrayIcon):
                 pw.hide()
             else:
                 pw.show()
-        print(reason)
+        # print(reason)
 
     def mClied(self):
         self.showMessage("提示", "你点了消息", self.icon)
@@ -66,7 +66,9 @@ class TrayIcon(QSystemTrayIcon):
         self.setVisible(False)
         self.parent().close()
         qApp.quit()
-        sys.exit()
+        sys.exit(0)
+
+
 
 
 class window(QWidget):
