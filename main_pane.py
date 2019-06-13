@@ -11,6 +11,10 @@ import os
 from win32com.client import Dispatch
 import win32com
 import threading
+from win32api import *
+from win32con import *
+import win32api
+import win32con
 
 class Window(QMainWindow, Ui_MainWindow):
     Logsignal = pyqtSignal(str)
@@ -18,7 +22,11 @@ class Window(QMainWindow, Ui_MainWindow):
     def __init__(self):
         try  :
             super().__init__()
-            self.setWindowIcon(QIcon("vvv.png"))
+            self.workpath = "C:\\Program Files (x86)\\main_pane\\"
+            # self.workpath = "C:\\Users\\deepcare\\Desktop\\watch_file\\"
+            self.iconpath = self.workpath+"vvv.png"
+            self.configname = self.workpath + "config\\watch.conf"
+            self.setWindowIcon(QIcon(self.iconpath))
             self.setupUi(self)
             self.init_config()
             self.setup_ui()
@@ -31,18 +39,19 @@ class Window(QMainWindow, Ui_MainWindow):
         self.btn_start.adjustSize()
         self.pte_log.setAutoFillBackground(True)
         self.pte_log.setReadOnly(True)
-        self.setWindowIcon(QIcon("vvv.png"))
-        trayicon = TrayIcon(self)
+        # self.setWindowIcon(QIcon(self.iconpath))
+        trayicon = TrayIcon(self,path=self.iconpath)
+        # trayicon = TrayIcon(self)
         trayicon.show()
+
 
     # 配置文件
     def init_config(self):
-        self.configname = "config/watch.conf"
         self.configUtile = ConfigUtile()
+        # print(  self.configname)
         config = self.configUtile.toDict(self.configname)
         self.clientconf = config.get('client')
         self.logname = time.strftime("%Y-%m-%d", time.localtime())
-        print(self.logname)
 
     def closeEvent(self, a0: QtGui.QCloseEvent):
         a0.ignore()
@@ -69,19 +78,21 @@ class Window(QMainWindow, Ui_MainWindow):
 
     def start_watchfile(self):
         self.logtopte("watching..")
-        print(self.clientconf)
+        # print(self.clientconf)
         self.observer = Observer()
         path = self.clientconf.get('watchpath')
         print('watch path', path)
         if not path:
             import psutil
+            self.logtopte('watch path:')
             for disk in psutil.disk_partitions():
-                print(disk.device)
+                # print(disk.device)
                 self.observer.schedule(self.event_handler, disk.device, True)
+                self.logtopte(disk.device)
 
         else:
             self.observer.schedule(self.event_handler, path, True)
-        self.logtopte('watch path:'+ path)
+            self.logtopte('watch path:'+ path)
 
 
         self.observer.start()
@@ -99,7 +110,7 @@ class Window(QMainWindow, Ui_MainWindow):
         if log == '':
             return
         print('---------')
-        with open("log/"+self.logname, "a+", encoding='utf-8') as f:
+        with open(self.workpath+"log\\"+self.logname, "a+", encoding='utf-8') as f:
             f.write("\r\n"+log)
 
     def loadconfig(self):
@@ -138,24 +149,57 @@ class Window(QMainWindow, Ui_MainWindow):
         mb.exec()
 
 
-
+def test():
+    print("jklsdjfklslfksdfldskf")
 if __name__ == '__main__':
+    pypath = sys.argv[0]
+    exepath = pypath.replace(".py", ".exe")
+    name = exepath.split("/")[-1]
+    # print('-------'+name)
+
+    # Write to Windows Registry
+    value_name = name
+    program_path = exepath
+    KeyName = 'Software\\Microsoft\\Windows\\CurrentVersion\\Run'
+    try:
+        key = win32api.RegOpenKey(win32con.HKEY_CURRENT_USER, KeyName, 0, win32con.KEY_ALL_ACCESS)
+        info = RegQueryInfoKey(key)
+        value_names = []
+        for i in range(0, info[1]):
+            ValueName = RegEnumValue(key, i)
+            value_names.append(ValueName[0])
+        if value_name not in value_names:
+            win32api.RegSetValueEx(key, value_name, 0, win32con.REG_SZ, program_path)
+        win32api.RegCloseKey(key)
+    except Exception:
+        # print(traceback.format_exc())
+        pass
+
 
     isrunning = False
     from utile.SysUtile import SysUtile
     sysUtile = SysUtile()
-    name = sys.argv[0]
-    print(name)
+
+    # print(name)
     isrunning = sysUtile.isrunning(name)
 
     app = QApplication(sys.argv)
     window = Window()
     window.show()
 
+    app.aboutToQuit.connect(test)
     if isrunning:
         print('已经运行')
         window.showWarmingDialog()
 
     atexit.register(window.my_exec)
+
+    # exe = name.replace(".py", ".exe")
+    # print(exe)
+    # if os.path.exists(exe):
+    #     print("shanchu")
+    #     os.rename(exe, exe+'.bak')
     sys.exit(app.exec_())
+
+
 

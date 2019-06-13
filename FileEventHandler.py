@@ -63,6 +63,7 @@ class FileEventHandler(FileSystemEventHandler):
         self.aetitle = config.get('aetitle')
         self.name_institution = config.get('name_institution')
         self.sonpath = config.get('sonpath')
+        self.network = config.get('network')
 
 
     def on_created(self, event):
@@ -93,10 +94,11 @@ class FileEventHandler(FileSystemEventHandler):
                             with open(file_path, 'rb') as file:
                                 multiple_files = [('multipartFiles', open(file_path, 'rb'))]
                                 body = {"aetitle": self.aetitle}
-                                # response = requests.post("http://139.219.103.195:4000/deepcare/api/dicom/saveFile", files=multiple_files, data=body)
-                                # print(response.text)
-                                # self.signal.emit(response.text)
-                                # print(response.status_code)
+                                if self.network:
+                                    response = requests.post("http://139.219.103.195:4000/deepcare/api/dicom/saveFile", files=multiple_files, data=body)
+                                    print(response.text)
+                                    self.signal.emit(response.text)
+                                    print(response.status_code)
                         else:
                             print("解析xml")
                             self.signal.emit("解析xml")
@@ -140,10 +142,11 @@ class FileEventHandler(FileSystemEventHandler):
                                         'aetitle': self.aetitle,
                                         'json': str(output),
                                     }
-                                    # response = requests.post("http://139.219.103.195:4000/deepcare/api/tiff/upload", files=multiple_files, data=body)
-                                    # print(response.text)
-                                    # self.signal.emit(response.text)
-                                    # print(response.status_code)
+                                    if self.network:
+                                        response = requests.post("http://139.219.103.195:4000/deepcare/api/tiff/upload", files=multiple_files, data=body)
+                                        print(response.text)
+                                        self.signal.emit(response.text)
+                                        print(response.status_code)
                         self.file_recent = file_path
                         self.t_recent = t_now
         except Exception:

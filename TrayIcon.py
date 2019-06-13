@@ -12,10 +12,16 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 
 class TrayIcon(QSystemTrayIcon):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, **kwargs):
+        self.iconpath = kwargs.get('path')
         super(TrayIcon, self).__init__(parent)
+        # print(self.iconpath)
+
         self.showMenu()
         self.other()
+
+    def setIconPath(self, path):
+        self.iconpath = path
 
     def showMenu(self):
         "设计托盘的菜单，这里我实现了一个二级菜单"
@@ -40,7 +46,8 @@ class TrayIcon(QSystemTrayIcon):
         #把鼠标点击图标的信号和槽连接
         self.messageClicked.connect(self.mClied)
         #把鼠标点击弹出消息的信号和槽连接
-        self.setIcon(QIcon("vvv.png"))
+        self.setIcon(QIcon(self.iconpath))
+        # self.setIcon(QIcon("vvv.png"))
         self.icon = self.MessageIcon()
         #设置图标
 
@@ -76,7 +83,6 @@ class window(QWidget):
         super(window, self).__init__(parent)
         ti = TrayIcon(self)
         ti.show()
-        # self.setWindowIcon(QIcon("../../vvv.png"))
 
     def closeEvent(self, a0: QCloseEvent):
         a0.ignore()
@@ -86,7 +92,6 @@ class window(QWidget):
 if __name__ == "__main__":
     import sys
     app = QApplication(sys.argv)
-    # app.setWindowIcon(QIcon("../../vvv.png"))
     w = window()
     w.show()
     sys.exit(app.exec_())
