@@ -26,6 +26,7 @@ class Window(QMainWindow, Ui_MainWindow):
             # self.workpath = "C:\\Users\\deepcare\\Desktop\\watch_file\\"
             self.iconpath = self.workpath+"vvv.png"
             self.configname = self.workpath + "config\\watch.conf"
+            print("1111111111111")
             self.setWindowIcon(QIcon(self.iconpath))
             self.setupUi(self)
             self.init_config()

@@ -94,7 +94,7 @@ class FileEventHandler(FileSystemEventHandler):
                             with open(file_path, 'rb') as file:
                                 multiple_files = [('multipartFiles', open(file_path, 'rb'))]
                                 body = {"aetitle": self.aetitle}
-                                if self.network:
+                                if self.network!="no":
                                     response = requests.post("http://139.219.103.195:4000/deepcare/api/dicom/saveFile", files=multiple_files, data=body)
                                     print(response.text)
                                     self.signal.emit(response.text)
@@ -142,7 +142,7 @@ class FileEventHandler(FileSystemEventHandler):
                                         'aetitle': self.aetitle,
                                         'json': str(output),
                                     }
-                                    if self.network:
+                                    if self.network!="no":
                                         response = requests.post("http://139.219.103.195:4000/deepcare/api/tiff/upload", files=multiple_files, data=body)
                                         print(response.text)
                                         self.signal.emit(response.text)
