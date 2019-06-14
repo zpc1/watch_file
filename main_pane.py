@@ -33,6 +33,7 @@ class Window(QMainWindow, Ui_MainWindow):
             self.setup_ui()
             self.init_watchdog()
             self.Logsignal.connect(self.logtopte)
+            self.start_watchfile()
         except Exception:
             self.logtopte(traceback.format_exc())
 
@@ -62,10 +63,10 @@ class Window(QMainWindow, Ui_MainWindow):
     def start_btn_clicked(self, isclicked):
         if isclicked:
             self.btn_start.setText("停止")
-            self.start_watchfile()
+            self.start_watchfile(isclicked)
         else:
             self.btn_start.setText("开始")
-            self.stop_watchfile()
+            self.stop_watchfile(isclicked)
 
     # def test_clicked(self):
     #     print(self.observer.is_alive())
@@ -79,27 +80,32 @@ class Window(QMainWindow, Ui_MainWindow):
 
     def start_watchfile(self):
         self.logtopte("watching..")
+        self.btn_start.setText("停止")
         # print(self.clientconf)
         self.observer = Observer()
         path = self.clientconf.get('watchpath')
         print('watch path', path)
-        if not path:
-            import psutil
-            self.logtopte('watch path:')
-            for disk in psutil.disk_partitions():
-                # print(disk.device)
-                self.observer.schedule(self.event_handler, disk.device, True)
-                self.logtopte(disk.device)
 
-        else:
-            self.observer.schedule(self.event_handler, path, True)
-            self.logtopte('watch path:'+ path)
+        self.observer.schedule(self.event_handler,"C:\\", True)
+
+        # if not path:
+        #     import psutil
+        #     self.logtopte('watch path:')
+        #     for disk in psutil.disk_partitions():
+        #         # print(disk.device)
+        #         self.observer.schedule(self.event_handler, disk.device, True)
+        #         self.logtopte(disk.device)
+        #
+        # else:
+        #     self.observer.schedule(self.event_handler, path, True)
+        #     self.logtopte('watch path:'+ path)
 
 
         self.observer.start()
 
     def stop_watchfile(self):
         print('stop watch')
+        self.btn_start.setText("开始")
         self.logtopte("stop watch")
         self.observer.stop()
 

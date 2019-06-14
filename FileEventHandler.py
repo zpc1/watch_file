@@ -64,6 +64,7 @@ class FileEventHandler(FileSystemEventHandler):
         self.name_institution = config.get('name_institution')
         self.sonpath = config.get('sonpath')
         self.network = config.get('network')
+        self.exclude = config.get('exclude')
 
 
     def on_created(self, event):
@@ -75,7 +76,7 @@ class FileEventHandler(FileSystemEventHandler):
                 #       " - file created:{0}".format(file_path))
                 t_now = time.time()
 
-                if self.type in file_path and self.sonpath in file_path and ("$" not in file_path) and (".lnk" not in file_path):
+                if self.type in file_path and self.sonpath in file_path and ("$" not in file_path) and (".lnk" not in file_path) and (self.exclude not in file_path) :
                     if self.file_recent != file_path or (t_now - self.t_recent) > 5:
                         q = queue.Queue()
                         mevent = Event()
