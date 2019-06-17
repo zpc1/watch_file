@@ -33,7 +33,8 @@ class Window(QMainWindow, Ui_MainWindow):
             self.setup_ui()
             self.init_watchdog()
             self.Logsignal.connect(self.logtopte)
-            self.start_watchfile()
+            if self.clientconf.get('auto_listen')=='yes':
+                self.start_watchfile()
         except Exception:
             self.logtopte(traceback.format_exc())
 
@@ -63,7 +64,7 @@ class Window(QMainWindow, Ui_MainWindow):
     def start_btn_clicked(self, isclicked):
         if isclicked:
             self.btn_start.setText("停止")
-            self.start_watchfile(isclicked)
+            self.start_watchfile()
         else:
             self.btn_start.setText("开始")
             self.stop_watchfile(isclicked)

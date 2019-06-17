@@ -76,6 +76,9 @@ class FileEventHandler(FileSystemEventHandler):
                 #       " - file created:{0}".format(file_path))
                 t_now = time.time()
 
+                # 1、以.type结尾
+                # 2、包含子路径用于区分2d、3d
+                # 3、不包含exclude
                 if self.type in file_path and self.sonpath in file_path and ("$" not in file_path) and (".lnk" not in file_path) and (self.exclude not in file_path) :
                     if self.file_recent != file_path or (t_now - self.t_recent) > 5:
                         q = queue.Queue()
