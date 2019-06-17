@@ -19,11 +19,13 @@ import win32con
 class Window(QMainWindow, Ui_MainWindow):
     Logsignal = pyqtSignal(str)
 
-    def __init__(self):
+    def __init__(self, path):
         try  :
             super().__init__()
-            self.workpath = "C:\\Program Files (x86)\\main_pane\\"
+            print('---'+path)
+            # self.workpath = "C:\\Program Files (x86)\\main_pane\\"
             # self.workpath = "C:\\Users\\deepcare\\Desktop\\watch_file\\"
+            self.workpath = path
             self.iconpath = self.workpath+"vvv.png"
             self.configname = self.workpath + "config\\watch.conf"
             print("1111111111111")
@@ -67,7 +69,7 @@ class Window(QMainWindow, Ui_MainWindow):
             self.start_watchfile()
         else:
             self.btn_start.setText("开始")
-            self.stop_watchfile(isclicked)
+            self.stop_watchfile()
 
     # def test_clicked(self):
     #     print(self.observer.is_alive())
@@ -161,27 +163,29 @@ def test():
     print("jklsdjfklslfksdfldskf")
 if __name__ == '__main__':
     pypath = sys.argv[0]
+    print("path = "+pypath)
     exepath = pypath.replace(".py", ".exe")
-    name = exepath.split("/")[-1]
-    # print('-------'+name)
+    work_path = exepath[:(exepath.rindex("/")+1)]
+    name = exepath.split("/")
+    # print(name)
 
     # Write to Windows Registry
     value_name = name
     program_path = exepath
     KeyName = 'Software\\Microsoft\\Windows\\CurrentVersion\\Run'
-    try:
-        key = win32api.RegOpenKey(win32con.HKEY_CURRENT_USER, KeyName, 0, win32con.KEY_ALL_ACCESS)
-        info = RegQueryInfoKey(key)
-        value_names = []
-        for i in range(0, info[1]):
-            ValueName = RegEnumValue(key, i)
-            value_names.append(ValueName[0])
-        if value_name not in value_names:
-            win32api.RegSetValueEx(key, value_name, 0, win32con.REG_SZ, program_path)
-        win32api.RegCloseKey(key)
-    except Exception:
-        # print(traceback.format_exc())
-        pass
+    # try:
+    #     key = win32api.RegOpenKey(win32con.HKEY_CURRENT_USER, KeyName, 0, win32con.KEY_ALL_ACCESS)
+    #     info = RegQueryInfoKey(key)
+    #     value_names = []
+    #     for i in range(0, info[1]):
+    #         ValueName = RegEnumValue(key, i)
+    #         value_names.append(ValueName[0])
+    #     if value_name not in value_names:
+    #         win32api.RegSetValueEx(key, value_name, 0, win32con.REG_SZ, program_path)
+    #     win32api.RegCloseKey(key)
+    # except Exception:
+    #     # print(traceback.format_exc())
+    #     pass
 
 
     isrunning = False
@@ -192,7 +196,7 @@ if __name__ == '__main__':
     isrunning = sysUtile.isrunning(name)
 
     app = QApplication(sys.argv)
-    window = Window()
+    window = Window(work_path)
     window.show()
 
     app.aboutToQuit.connect(test)
