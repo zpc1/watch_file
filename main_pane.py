@@ -89,19 +89,20 @@ class Window(QMainWindow, Ui_MainWindow):
         path = self.clientconf.get('watchpath')
         print('watch path', path)
 
-        self.observer.schedule(self.event_handler,"C:\\", True)
+        # self.observer.schedule(self.event_handler,"C:\\", True)
 
-        # if not path:
-        #     import psutil
-        #     self.logtopte('watch path:')
-        #     for disk in psutil.disk_partitions():
-        #         # print(disk.device)
-        #         self.observer.schedule(self.event_handler, disk.device, True)
-        #         self.logtopte(disk.device)
-        #
-        # else:
-        #     self.observer.schedule(self.event_handler, path, True)
-        #     self.logtopte('watch path:'+ path)
+        if not path:
+            import psutil
+            self.logtopte('watch path:')
+            for disk in psutil.disk_partitions():
+                # print(disk.device)
+                if 'rw' in disk[3]:
+                    self.observer.schedule(self.event_handler, disk.device, True)
+                    self.logtopte(disk.device)
+
+        else:
+            self.observer.schedule(self.event_handler, path, True)
+            self.logtopte('watch path:'+ path)
 
 
         self.observer.start()
