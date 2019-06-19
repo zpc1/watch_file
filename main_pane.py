@@ -15,6 +15,7 @@ from win32api import *
 from win32con import *
 import win32api
 import win32con
+from utile.MailUtile import MailUtile
 
 class Window(QMainWindow, Ui_MainWindow):
     Logsignal = pyqtSignal(str)
@@ -35,6 +36,7 @@ class Window(QMainWindow, Ui_MainWindow):
             self.setup_ui()
             self.init_watchdog()
             self.Logsignal.connect(self.logtopte)
+            self.mail = MailUtile()
             if self.clientconf.get('auto_listen')=='yes':
                 self.start_watchfile()
         except Exception:
@@ -53,7 +55,7 @@ class Window(QMainWindow, Ui_MainWindow):
     # 配置文件
     def init_config(self):
         self.configUtile = ConfigUtile()
-        # print(  self.configname)
+        print("config name:"+self.configname)
         config = self.configUtile.toDict(self.configname)
         self.clientconf = config.get('client')
         self.logname = time.strftime("%Y-%m-%d", time.localtime())
@@ -113,6 +115,9 @@ class Window(QMainWindow, Ui_MainWindow):
         self.logtopte("stop watch")
         self.observer.stop()
 
+
+        self.mail.sendMail(self.pte_log.toPlainText(),self.clientconf.get("aetitle"))
+
     def my_exec(self):
         if 'observer'in dir(self):
             self.observer.stop()
@@ -120,9 +125,11 @@ class Window(QMainWindow, Ui_MainWindow):
         log = self.pte_log.toPlainText()
         if log == '':
             return
+        self.mail.sendMail(self.pte_log.toPlainText(), self.clientconf.get("aetitle"))
         print('---------')
         with open(self.workpath+"log\\"+self.logname, "a+", encoding='utf-8') as f:
             f.write("\r\n"+log)
+
 
     def loadconfig(self):
         config = self.configUtile.toDict(self.configname)
@@ -166,7 +173,8 @@ if __name__ == '__main__':
     pypath = sys.argv[0]
     print("path = "+pypath)
     exepath = pypath.replace(".py", ".exe")
-    work_path = exepath[:(exepath.rindex("/")+1)]
+    # work_path = exepath[:(exepath.rindex("/")+1)]
+    work_path = "C:\\Program Files (x86)\\main_pane\\"
     name = exepath.split("/")
     # print(name)
 
@@ -174,19 +182,19 @@ if __name__ == '__main__':
     value_name = name
     program_path = exepath
     KeyName = 'Software\\Microsoft\\Windows\\CurrentVersion\\Run'
-    # try:
-    #     key = win32api.RegOpenKey(win32con.HKEY_CURRENT_USER, KeyName, 0, win32con.KEY_ALL_ACCESS)
-    #     info = RegQueryInfoKey(key)
-    #     value_names = []
-    #     for i in range(0, info[1]):
-    #         ValueName = RegEnumValue(key, i)
-    #         value_names.append(ValueName[0])
-    #     if value_name not in value_names:
-    #         win32api.RegSetValueEx(key, value_name, 0, win32con.REG_SZ, program_path)
-    #     win32api.RegCloseKey(key)
-    # except Exception:
-    #     # print(traceback.format_exc())
-    #     pass
+    try:
+        key = win32api.RegOpenKey(win32con.HKEY_CURRENT_USER, KeyName, 0, win32con.KEY_ALL_ACCESS)
+        info = RegQueryInfoKey(key)
+        value_names = []
+        for i in range(0, info[1]):
+            ValueName = RegEnumValue(key, i)
+            value_names.append(ValueName[0])
+        if value_name not in value_names:
+            win32api.RegSetValueEx(key, value_name, 0, win32con.REG_SZ, program_path)
+        win32api.RegCloseKey(key)
+    except Exception:
+        print(traceback.format_exc())
+        # pass
 
 
     isrunning = False

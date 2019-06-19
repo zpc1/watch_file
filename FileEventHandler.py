@@ -69,11 +69,11 @@ class FileEventHandler(FileSystemEventHandler):
 
     def on_created(self, event):
         try:
-            print('---------------')
+            # print('---------------')
             if not event.is_directory:
                 file_path = event.src_path
-                # print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) +
-                #       " - file created:{0}".format(file_path))
+                print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) +
+                      " - file created:{0}".format(file_path))
                 t_now = time.time()
 
                 # 1、以.type结尾
