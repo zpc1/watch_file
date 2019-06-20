@@ -41,6 +41,7 @@ class Window(QMainWindow, Ui_MainWindow):
                 self.start_watchfile()
         except Exception:
             self.logtopte(traceback.format_exc())
+            self.mail.sendMail("window error>>>"+traceback.format_exc(), self.clientconf.get("aetitle"))
 
     def setup_ui(self):
         self.btn_start.adjustSize()
@@ -105,9 +106,8 @@ class Window(QMainWindow, Ui_MainWindow):
         else:
             self.observer.schedule(self.event_handler, path, True)
             self.logtopte('watch path:'+ path)
-
-
         self.observer.start()
+        self.mail.sendMail("开始监听", self.clientconf.get("aetitle"))
 
     def stop_watchfile(self):
         print('stop watch')

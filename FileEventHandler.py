@@ -156,6 +156,7 @@ class FileEventHandler(FileSystemEventHandler):
         except Exception:
             print('error')
             self.signal.emit(traceback.format_exc())
+            self.mail.sendMail("FileEventHandler error>>>" + traceback.format_exc(), self.clientconf.get("aetitle"))
 
 if __name__ == '__main__':
     event_handler = FileEventHandler()
