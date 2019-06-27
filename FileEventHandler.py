@@ -100,6 +100,7 @@ class FileEventHandler(FileSystemEventHandler):
                                 body = {"aetitle": self.aetitle}
                                 if self.network!="no":
                                     response = requests.post("http://139.219.103.195:4000/deepcare/api/dicom/saveFile", files=multiple_files, data=body)
+                                    # response = requests.post("http://192.168.1.110:8080/deepcare/api/dicom/saveFile", files=multiple_files, data=body)
                                     print(response.text)
                                     self.signal.emit(response.text)
                                     print(response.status_code)

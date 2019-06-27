@@ -60,7 +60,7 @@ class ConfigUtile:
         conf.read(name, encoding='utf-8')
         items = {}
         for nodename in conf.sections():
-            # print(nodename)
+            print(nodename)
             opt = {}
             for son in conf.items(nodename):
                 # print(son[0])
@@ -68,9 +68,12 @@ class ConfigUtile:
             items[nodename] = opt
         return items
 
-    def updateValue(self, section, key, value):
-        self.conf.set(section, key, value)
-        # self.saveConfig(self.configname)
+    def updateValue(self, name ,section, key, value):
+        conf = ConfigParser()
+        conf.read(name, encoding='utf-8')
+        conf.set(section, key, value)
+        with open(name, "w+") as f:
+            conf.write(f)
 
     def saveConfig(self, configname):
         with open(configname, "w+") as f:
@@ -90,16 +93,16 @@ class ConfigUtile:
     #     print(self.getAllItems())
 
 if __name__ == '__main__':
-    configname = "config/test.conf"
+    configname = "D:/Users/deepcare/PycharmProjects/watch_file/config/watch.conf"
     conf = ConfigUtile()
-    conf.readConfig(configname)
-    # conf.readConfig("config/test.ini")
-    sections = conf.getSections()
+    # conf.readConfig(configname)
+    # # conf.readConfig("config/test.ini")
+    # sections = conf.getSections()
     # print(sections)
     # print(conf.getItemsBySection(sections[0]))
     # conf.getPath()
-
+    #
     # conf.writeConfig()
-    # conf.updateValue("client", "filetype", "dcm")
-    dict = conf.toDict('config/test.conf')
+    conf.updateValue(configname,"client", "aetitle", "111")
+    dict = conf.toDict(configname)
     print(dict)

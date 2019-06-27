@@ -17,7 +17,7 @@ import win32api
 import win32con
 from utile.MailUtile import MailUtile
 
-class Window(QMainWindow, Ui_MainWindow):
+class Window(QMainWindow, Ui_MainWindow ):
     Logsignal = pyqtSignal(str)
 
     def __init__(self, path):
@@ -28,7 +28,7 @@ class Window(QMainWindow, Ui_MainWindow):
             # self.workpath = "C:\\Users\\deepcare\\Desktop\\watch_file\\"
             self.workpath = path
             self.iconpath = self.workpath+"vvv.png"
-            self.configname = self.workpath + "config\\watch.conf"
+            self.configname = self.workpath + "config/watch.conf"
             print("1111111111111")
             self.setWindowIcon(QIcon(self.iconpath))
             self.setupUi(self)
@@ -37,8 +37,45 @@ class Window(QMainWindow, Ui_MainWindow):
             self.init_watchdog()
             self.Logsignal.connect(self.logtopte)
             self.mail = MailUtile()
-            if self.clientconf.get('auto_listen')=='yes':
+            if self.clientconf.get('auto_listen')=='yes' and self.clientconf.get("aetitle") != "":
+                self.btn_start.setChecked(True)
                 self.start_watchfile()
+            elif self.clientconf.get("aetitle") == "":
+                ok = False
+                inputDialog = QInputDialog()
+                inputDialog.adjustSize()
+                while not ok:
+                    text, ok = inputDialog.getText(self, "手机号","请输入注册时的手机号码")
+                print(text,ok)
+
+                while not self.judge_Monile_phone(text):
+                    text, ok = inputDialog.getText(self, "请输入注册时的手机号码","请输入正确的手机号")
+
+                self.configUtile.updateValue(self.configname,"client", "aetitle", text)
+                self.loadconfig()
+                # self.dialog = QDialog(self)
+                # self.dialog.resize(500, 300)
+                # self.okBtn = QPushButton("确定")
+                #
+                # self.okBtn.clicked.connect(self.ok)
+                #
+                #
+                # self.dialog.setWindowTitle("请输入注册时的手机号")
+                #
+                # hbox = QHBoxLayout()
+                # vbox = QVBoxLayout()
+                # label = QLabel("手机号")
+                # lineEdit = QLineEdit()
+                # hbox.addWidget(label)
+                # hbox.addWidget(lineEdit)
+                # vbox.addLayout(hbox)
+                # vbox.addWidget(self.okBtn)
+                # self.dialog.setLayout(vbox)
+                # resulet = 0
+                # while resulet !=1:
+                #     self.dialog.exec()
+
+
         except Exception:
             self.logtopte(traceback.format_exc())
             self.mail.sendMail("window error>>>"+traceback.format_exc(), self.clientconf.get("aetitle"))
@@ -52,6 +89,19 @@ class Window(QMainWindow, Ui_MainWindow):
         # trayicon = TrayIcon(self)
         trayicon.show()
 
+    def judge_Monile_phone(self, number):
+        result = True
+        import re
+        if len(number) == 11:
+            rp = re.compile(r'^0\d{2,3}\d{7,8}$|^1[358]\d{9}$|^147\d{8}')
+            phoneMatch = rp.match(number)
+            if phoneMatch:
+                print(phoneMatch.group())
+            else:
+                result = False
+        else:
+            result = False
+        return result
 
     # 配置文件
     def init_config(self):
@@ -173,8 +223,8 @@ if __name__ == '__main__':
     pypath = sys.argv[0]
     print("path = "+pypath)
     exepath = pypath.replace(".py", ".exe")
-    # work_path = exepath[:(exepath.rindex("/")+1)]
-    work_path = "C:\\Program Files (x86)\\main_pane\\"
+    work_path = exepath[:(exepath.rindex("/")+1)]
+    # work_path = "C:\\Program Files (x86)\\main_pane\\"
     name = exepath.split("/")
     # print(name)
 
