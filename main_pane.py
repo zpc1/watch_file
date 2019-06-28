@@ -26,9 +26,9 @@ class Window(QMainWindow, Ui_MainWindow ):
             print('---'+path)
             # self.workpath = "C:\\Program Files (x86)\\main_pane\\"
             # self.workpath = "C:\\Users\\deepcare\\Desktop\\watch_file\\"
-            self.workpath = path
-            self.iconpath = self.workpath+"vvv.png"
-            self.configname = self.workpath + "config/watch.conf"
+            self.workpath =  path
+            self.iconpath = os.path.join(self.workpath,"vvv.png")
+            self.configname = os.path.join(self.workpath , "config","watch.conf")
             print("1111111111111")
             self.setWindowIcon(QIcon(self.iconpath))
             self.setupUi(self)
@@ -220,15 +220,25 @@ class Window(QMainWindow, Ui_MainWindow ):
 def test():
     print("jklsdjfklslfksdfldskf")
 if __name__ == '__main__':
-    pypath = sys.argv[0]
-    print("path = "+pypath)
-    exepath = pypath.replace(".py", ".exe")
-    work_path = exepath[:(exepath.rindex("/")+1)]
-    # work_path = "C:\\Program Files (x86)\\main_pane\\"
-    name = exepath.split("/")
-    # print(name)
-
+    # pypath = sys.argv[0]
+    # print(os.path.dirname(sys.argv[0]))
+    # print("path = "+pypath)
+    # exepath = pypath.replace(".py", ".exe")
+    # print("exepath"+exepath)
+    # print("number:"+str(exepath.rindex("\\")))
+    # work_path = exepath[:(exepath.rindex("\\")+1)]
+    # print("work_path:"+work_path)
+    # work_path = "C:\\Program Files (x86)\\main_pane"
+    # name = exepath.split("/")
+    # print("name:"+name)
+    work_path = os.path.dirname(sys.argv[0])
+    print("work_path"+os.path.abspath(sys.argv[0]))
+    work_path = os.path.abspath(work_path)
+    work_path = "C:\\Program Files (x86)\\main_pane"
+    name = os.path.basename(sys.argv[0])
     # Write to Windows Registry
+
+    exepath = sys.argv[0]
     value_name = name
     program_path = exepath
     KeyName = 'Software\\Microsoft\\Windows\\CurrentVersion\\Run'
