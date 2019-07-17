@@ -234,7 +234,7 @@ if __name__ == '__main__':
     work_path = os.path.dirname(sys.argv[0])
     print("work_path"+os.path.abspath(sys.argv[0]))
     work_path = os.path.abspath(work_path)
-    work_path = "C:\\Program Files (x86)\\main_pane"
+    # work_path = "C:\\Program Files (x86)\\main_pane"
     name = os.path.basename(sys.argv[0])
     # Write to Windows Registry
 
